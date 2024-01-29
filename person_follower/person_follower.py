@@ -38,8 +38,21 @@ class PersonFollower(Node):
         #
         # your code for computing vx, wz
         #
-        vx = 0.
-        wz = 0.
+        distance_front = min(ranges[170:190])
+        min_distance = 0.7
+        max_distance = 2.0
+        print(ranges[180])
+        if distance_front > min_distance and distance_front < max_distance:
+	        vx = 0.2
+	        if ranges[170] < (ranges[180] or ranges[190]):
+	        	wz = 0.4
+	        elif ranges[190] < (ranges[180] or ranges[170]):
+        		wz = -0.4
+	        else:
+		        wz = 0.0
+        else:
+        	vx = 0.0
+        	wz = 0.0
         #
         output_msg = Twist()
         output_msg.linear.x = vx
