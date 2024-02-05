@@ -45,9 +45,11 @@ class PersonFollower(Node):
         if distance_front > min_distance and distance_front < max_distance:
 	        vx = 0.2
 	        if ranges[170] < (ranges[180] or ranges[190]):
-	        	wz = 2.5
+	        	while ranges[170] < ranges[180]:
+				wz = 2.5
 	        elif ranges[190] < (ranges[180] or ranges[170]):
-        		wz = -2.5
+        		while ranges[190] > ranges[180]:
+				wz = -2.5
 	        else:
 		        wz = 0.0
         else:
