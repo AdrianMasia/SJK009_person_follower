@@ -15,14 +15,15 @@ mkdir -p ~/ros2_ws/src
 3. Clone this repository and build the package
 ```
 cd ~/ros2_ws/src
-git clone https://github.com/RobInLabUJI/person_follower.git
+// git clone https://github.com/RobInLabUJI/person_follower.git
+git clone https://github.com/AdrianMasia/SJK009_person_follower.git
 cd ..
 source /opt/ros/foxy/setup.bash
 colcon build --symlink-install
 ```
 4. Copy the Webots world file to the ROS package folder
 ```
-sudo cp ~/ros2_ws/src/person_follower/webots/turtlebot3_burger_pedestrian_simple.wbt \
+sudo cp ~/ros2_ws/src/SJK009_person_follower/webots/turtlebot3_burger_pedestrian_simple.wbt \
         /opt/ros/foxy/share/webots_ros2_turtlebot/worlds/.
 ```
 5. Run the person-following node
@@ -44,5 +45,5 @@ ros2 launch webots_ros2_turtlebot robot_launch.py \
 ```
 source /opt/ros/foxy/setup.bash
 export ROS_LOCALHOST_ONLY=1
-rviz2 -d ~/ros2_ws/src/person_follower/webots/config.rviz
+rviz2 -d ~/ros2_ws/src/SJK009_person_follower/webots/config.rviz
 ```
