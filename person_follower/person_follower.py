@@ -38,18 +38,23 @@ class PersonFollower(Node):
         #
         # your code for computing vx, wz
         #
-        distance_front = min(ranges[170:190])
-        min_distance = 0.7
-        max_distance = 2.0
+        distance_front = min(ranges[140:220])
+        distance_left = min(ranges[110:139])
+        distance_right = min(ranges[221:250])
+        min_distance = 0.5
+        max_distance = 1.0
         print(ranges[180])
         vx = 0.0
         wz = 0.0
-        if distance_front > min_distance and distance_front < max_distance:
-                vx = 0.2
-                if ranges[170] < ranges[180] or ranges[170] < ranges[190]:
-                        wz = 2.5
-                elif ranges[190] < ranges[180] or ranges[190] < ranges[170]:
-                        wz = -2.5
+        if distance_front >= min_distance and distance_front < max_distance:
+                if distance_front < ((min_distance + max_distance) / 2):
+                      vx = 0.1
+                else:
+                      vx = 0.2
+                if distance_left < distance_front or distance_left < distance_right:
+                        wz = 0.3
+                elif distance_right < distance_front or distance_right < distance_left:
+                        wz = -0.3
                 else:
                         wz = 0.0
         else:
