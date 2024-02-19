@@ -18,6 +18,21 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
+from math import pi
+
+
+CENTRE = 180
+ANGLE = 20
+
+MIN_FRONT = CENTRE - ANGLE
+MAX_FRONT = CENTRE + ANGLE
+
+MAX_LEFT = ANGLE
+MAX_RIGHT = CENTRE + 1
+
+OFFSET_LEFT = CENTRE - ANGLE
+OFFSET_RIGHT = CENTRE + 1
+
 class PersonFollower(Node):
 
     def __init__(self):
@@ -38,25 +53,38 @@ class PersonFollower(Node):
         #
         # your code for computing vx, wz
         #
-        distance_front = min(ranges[140:220])
-        distance_left = min(ranges[110:139])
-        distance_right = min(ranges[221:250])
-        min_distance = 0.5
-        max_distance = 1.0
-        print(ranges[180])
+        
+        range_values = ranges[MIN_FRONT : MAX_FRONT]
+        left_range_values   = range_values[0 : MAX_LEFT]
+        right_range_values   = range_values[MAX_RIGHT : ]
+        
+        distance_front = min(range_values)
+        distance_left = min(left_range_values)
+        distance_right = min(right_range_values)
+        min_distance = 0.3
+        # max_distance = 1.1
+        max_distance = 2
+
+        print(ranges[CENTRE])
         vx = 0.0
         wz = 0.0
-        if distance_front >= min_distance and distance_front < max_distance:
-                if distance_front < ((min_distance + max_distance) / 2):
-                      vx = 0.1
-                else:
-                      vx = 0.2
-                if distance_left < distance_front or distance_left < distance_right:
-                        wz = 0.3
-                elif distance_right < distance_front or distance_right < distance_left:
-                        wz = -0.3
-                else:
-                        wz = 0.0
+        # if distance_front >= min_distance and distance_front < max_distance:
+        if distance_front < max_distance:
+                vx =  distance_front - min_distance
+                # if distance_front < ((min_distance + max_distance) / 2): vx = 0.1
+                # else: vx = 0.2
+                if distance_left < ranges[CENTRE] and distance_left < distance_right:
+                        #wz = 0.3
+                        pos = OFFSET_LEFT + left_range_values.index(distance_left)
+                elif distance_right < ranges[CENTRE] and distance_right < distance_left:
+                        #wz = -0.3
+                        pos = OFFSET_RIGHT + right_range_values.index(distance_right)
+                else: 
+                       #wz = 0.0
+                       pos = CENTRE
+                       
+                wz = (pos - CENTRE) / pi
+
         else:
                 vx = 0.0
                 wz = 0.0
