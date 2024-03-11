@@ -122,7 +122,6 @@ class PersonFollower(Node):
         output_msg.linear.x = vx
         output_msg.angular.z = wz
         self.publisher_.publish(output_msg)
-
 def main(args=None):
     rclpy.init(args=args)
     person_follower = PersonFollower()
