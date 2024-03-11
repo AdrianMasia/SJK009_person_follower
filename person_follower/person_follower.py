@@ -26,23 +26,12 @@ ANGLE = 20
 MIN_FRONT = CENTRE - ANGLE  # 160
 MAX_FRONT = CENTRE + ANGLE  # 200
 
-MIN_LEFT = CENTRE       # 180
-MAX_LEFT = MAX_FRONT    #
-
-MIN_RIGHT = MIN_FRONT
-MAX_RIGHT = CENTRE - 1
-
-OFFSET_LEFT = MIN_LEFT
-OFFSET_RIGHT = MAX_LEFT
-
 MIN_DISTANCE = 0.3
-# max_distance = 1.1
-MAX_DISTANCE = 1.5
+MAX_DISTANCE = 1.75
+VEL_SMOOTH_FACTOR = 0.03
+ANGLE_SMOOTH_FACTOR = 0.45
 
 MAX_VEL = 6.67
-
-ALPHA = 0.5 # TODO: Buscar un nombre mejor
-NUM_DECIMALS = 4
 
 class PersonFollower(Node):
 
@@ -68,59 +57,36 @@ class PersonFollower(Node):
 
         # Obtenemos los conjuntos de los valores que consideramos delante
 
-        # El conjunto de valores
-        range_values = ranges[MIN_FRONT : MAX_FRONT]
-        # Los valores de lo que consideramos que es la derecha
-        left_range_values = ranges[MIN_LEFT : MAX_LEFT]
-        # Los valores de lo que conisderamos que es la izquierda
-        right_range_values = ranges[MIN_RIGHT : MAX_RIGHT]
+        # El conjunto de valores tal que: (indice de [0, ANGLE*2] , distancia)
+        range_values = list(enumerate(ranges[MIN_FRONT : MAX_FRONT]))
+        # Conjunto ordenado por la distancia (x es la tupla: x[0] indice, x[1] distanca)
+        range_values.sort(key= lambda x: x[1])
 
-        # La distancia menor de los valores
-        distance_front = round(min(range_values), NUM_DECIMALS)
-        # La distancia menor del conjunto de la izquierda
-        distance_left = round(min(left_range_values), NUM_DECIMALS)
-        # La distancia menor del conjunto de la derecha
-        distance_right = round(min(right_range_values), NUM_DECIMALS)
-        # La distancia en el centro
-        distance_centre = round(ranges[CENTRE], NUM_DECIMALS)
+        # Distancia menor.
+        index, distance = range_values[0]
 
-        # print(ranges[CENTRE])
-
-        if distance_front < MAX_DISTANCE:
+        # Avanza si está entre dos umbrales de distancia
+        if MIN_DISTANCE < distance < MAX_DISTANCE:
             # Idea: a más distancia, más velocidad.
-            vx = min(distance_front - MIN_DISTANCE, MAX_VEL)
-            print(f"vx: {vx} | distance_front: {distance_front}")
-            print(f"distance_left: {distance_left} | distance_centre: {distance_centre} | distance_right: {distance_right} ")
-            if distance_left < distance_centre and distance_left < distance_right:
-                # Avanza izquierda
-                print("Avanza izquierda")
-                pos = left_range_values.index(distance_left)
+            vx = MAX_VEL
+            #vx = min(distance - MIN_DISTANCE, MAX_VEL)
 
-                print(f"pos: {pos}")
+            # El índice estará entre 0 y Angulo *2 (o angulo_izq + angulo_der)
+            #   Por lo tanto, desplazamos el indice
+            angle = index + MIN_FRONT
 
-            elif distance_right < distance_centre and distance_right < distance_left:
-                # Avanza derecha
-                print("Avanza izquierda")
-                pos = right_range_values.index(distance_right)
+            # Pasamos el ángulo a radianes
+            wz = (CENTRE - angle) / pi
 
-                print(f"pos: {pos}")
-            else:
-                # Avanza de frente.
-                print("Avanza de frente")
-                #wz = 0.0
-                pos = CENTRE
-
-            wz = (CENTRE - pos) * ALPHA / pi
-
-            print(f"wz: {wz} | pos: {pos}")
+            print(f"vx: {vx} |  wz: {wz} | angle_min: {angle_min}")
             print("--------")
         else:
-                vx = 0.0
-                wz = 0.0
+            vx = 0.0
+            wz = 0.0
 
         output_msg = Twist()
-        output_msg.linear.x = vx
-        output_msg.angular.z = wz
+        output_msg.linear.x = vx * VEL_SMOOTH_FACTOR
+        output_msg.angular.z = wz * ANGLE_SMOOTH_FACTOR
         self.publisher_.publish(output_msg)
 def main(args=None):
     rclpy.init(args=args)
