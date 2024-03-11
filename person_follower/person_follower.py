@@ -55,38 +55,44 @@ class PersonFollower(Node):
         # your code for computing vx, wz
         #
 
-        # Obtenemos los conjuntos de los valores que consideramos delante
-
         # El conjunto de valores tal que: (indice de [0, ANGLE*2] , distancia)
         range_values = list(enumerate(ranges[MIN_FRONT : MAX_FRONT]))
         # Conjunto ordenado por la distancia (x es la tupla: x[0] indice, x[1] distanca)
         range_values.sort(key= lambda x: x[1])
 
-        # Distancia menor.
+        # Distancia menor y su índice.
+        #  El índice es importante porque nos ayuda a saber el ángulo
         index, distance = range_values[0]
 
         # Avanza si está entre dos umbrales de distancia
         if MIN_DISTANCE < distance < MAX_DISTANCE:
             # Idea: a más distancia, más velocidad.
-            vx = MAX_VEL
-            #vx = min(distance - MIN_DISTANCE, MAX_VEL)
+            # vx = min(distance - MIN_DISTANCE, MAX_VEL)
 
-            # El índice estará entre 0 y Angulo *2 (o angulo_izq + angulo_der)
-            #   Por lo tanto, desplazamos el indice
+            # TODO: ver bien como va la velocidad.
+            vx = MAX_VEL
+
+            # El índice estará entre 0 y 2·Ángulo  (o angulo_izq + angulo_der)
+            #   Por lo tanto, desplazamos el indice para que sea el ángulo real.
             angle = index + MIN_FRONT
 
             # Pasamos el ángulo a radianes
             wz = (CENTRE - angle) / pi
 
+            # Aplicamos las constantes para suavizar las velocidades
+            vx *= VEL_SMOOTH_FACTOR
+            wz *= ANGLE_SMOOTH_FACTOR
+
             print(f"vx: {vx} |  wz: {wz} | angle_min: {angle_min}")
             print("--------")
+
         else:
             vx = 0.0
             wz = 0.0
 
         output_msg = Twist()
-        output_msg.linear.x = vx * VEL_SMOOTH_FACTOR
-        output_msg.angular.z = wz * ANGLE_SMOOTH_FACTOR
+        output_msg.linear.x = vx
+        output_msg.angular.z = wz
         self.publisher_.publish(output_msg)
 def main(args=None):
     rclpy.init(args=args)
