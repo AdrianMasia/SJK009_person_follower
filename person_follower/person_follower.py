@@ -20,18 +20,29 @@ from geometry_msgs.msg import Twist
 
 from math import pi
 
-
 CENTRE = 180
 ANGLE = 20
 
-MIN_FRONT = CENTRE - ANGLE
-MAX_FRONT = CENTRE + ANGLE
+MIN_FRONT = CENTRE - ANGLE  # 160
+MAX_FRONT = CENTRE + ANGLE  # 200
 
-MAX_LEFT = ANGLE
-MAX_RIGHT = CENTRE + 1
+MIN_LEFT = CENTRE       # 180
+MAX_LEFT = MAX_FRONT    #
 
-OFFSET_LEFT = CENTRE - ANGLE
-OFFSET_RIGHT = CENTRE + 1
+MIN_RIGHT = MIN_FRONT
+MAX_RIGHT = CENTRE - 1
+
+OFFSET_LEFT = MIN_LEFT
+OFFSET_RIGHT = MAX_LEFT
+
+MIN_DISTANCE = 0.3
+# max_distance = 1.1
+MAX_DISTANCE = 1.5
+
+MAX_VEL = 6.67
+
+ALPHA = 0.5 # TODO: Buscar un nombre mejor
+NUM_DECIMALS = 4
 
 class PersonFollower(Node):
 
@@ -45,6 +56,7 @@ class PersonFollower(Node):
             10)
         self.subscription  # prevent unused variable warning
 
+
     def listener_callback(self, input_msg):
         angle_min = input_msg.angle_min
         angle_max = input_msg.angle_max
@@ -53,42 +65,59 @@ class PersonFollower(Node):
         #
         # your code for computing vx, wz
         #
-        
+
+        # Obtenemos los conjuntos de los valores que consideramos delante
+
+        # El conjunto de valores
         range_values = ranges[MIN_FRONT : MAX_FRONT]
-        left_range_values   = range_values[0 : MAX_LEFT]
-        right_range_values   = range_values[MAX_RIGHT : ]
-        
-        distance_front = min(range_values)
-        distance_left = min(left_range_values)
-        distance_right = min(right_range_values)
-        min_distance = 0.3
-        # max_distance = 1.1
-        max_distance = 2
+        # Los valores de lo que consideramos que es la derecha
+        left_range_values = ranges[MIN_LEFT : MAX_LEFT]
+        # Los valores de lo que conisderamos que es la izquierda
+        right_range_values = ranges[MIN_RIGHT : MAX_RIGHT]
 
-        print(ranges[CENTRE])
-        vx = 0.0
-        wz = 0.0
-        # if distance_front >= min_distance and distance_front < max_distance:
-        if distance_front < max_distance:
-                vx =  distance_front - min_distance
-                # if distance_front < ((min_distance + max_distance) / 2): vx = 0.1
-                # else: vx = 0.2
-                if distance_left < ranges[CENTRE] and distance_left < distance_right:
-                        #wz = 0.3
-                        pos = OFFSET_LEFT + left_range_values.index(distance_left)
-                elif distance_right < ranges[CENTRE] and distance_right < distance_left:
-                        #wz = -0.3
-                        pos = OFFSET_RIGHT + right_range_values.index(distance_right)
-                else: 
-                       #wz = 0.0
-                       pos = CENTRE
-                       
-                wz = (pos - CENTRE) / pi
+        # La distancia menor de los valores
+        distance_front = round(min(range_values), NUM_DECIMALS)
+        # La distancia menor del conjunto de la izquierda
+        distance_left = round(min(left_range_values), NUM_DECIMALS)
+        # La distancia menor del conjunto de la derecha
+        distance_right = round(min(right_range_values), NUM_DECIMALS)
+        # La distancia en el centro
+        distance_centre = round(ranges[CENTRE], NUM_DECIMALS)
 
+        # print(ranges[CENTRE])
+
+        if distance_front < MAX_DISTANCE:
+            # Idea: a más distancia, más velocidad.
+            vx = min(distance_front - MIN_DISTANCE, MAX_VEL)
+            print(f"vx: {vx} | distance_front: {distance_front}")
+            print(f"distance_left: {distance_left} | distance_centre: {distance_centre} | distance_right: {distance_right} ")
+            if distance_left < distance_centre and distance_left < distance_right:
+                # Avanza izquierda
+                print("Avanza izquierda")
+                pos = left_range_values.index(distance_left)
+
+                print(f"pos: {pos}")
+
+            elif distance_right < distance_centre and distance_right < distance_left:
+                # Avanza derecha
+                print("Avanza izquierda")
+                pos = right_range_values.index(distance_right)
+
+                print(f"pos: {pos}")
+            else:
+                # Avanza de frente.
+                print("Avanza de frente")
+                #wz = 0.0
+                pos = CENTRE
+
+            wz = (CENTRE - pos) * ALPHA / pi
+
+            print(f"wz: {wz} | pos: {pos}")
+            print("--------")
         else:
                 vx = 0.0
                 wz = 0.0
-        #
+
         output_msg = Twist()
         output_msg.linear.x = vx
         output_msg.angular.z = wz
