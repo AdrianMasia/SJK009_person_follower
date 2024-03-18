@@ -26,16 +26,15 @@ ANGLE = 30
 MIN_FRONT = CENTRE - ANGLE  # 150
 MAX_FRONT = CENTRE + ANGLE  # 210
 
-MIN_DISTANCE = 0.55
+MIN_DISTANCE = 0.50
 MAX_DISTANCE = 1.75
 MAX_VEL = 6.67
 
-VEL_SMOOTH_FACTOR = 0.7
-ANGLE_SMOOTH_FACTOR = 0.3
+VEL_SMOOTH_FACTOR = 0.5
+ANGLE_SMOOTH_FACTOR = 0.15
 
-# Lo de la derivada y la integral, o se ponen valores muy bajos, o molestan
-DERIVATE_SMOOTH_FACTOR = 0.005
-INTEGRAL_SMOOTH_FACTOR = 0.00005
+DERIVATE_SMOOTH_FACTOR = 0.010
+INTEGRAL_SMOOTH_FACTOR = 0.00010
 
 class PersonFollower(Node):
 
@@ -68,7 +67,7 @@ class PersonFollower(Node):
         range_values.sort(key= lambda x: x[1])
 
         # Distancia menor y su índice.
-        #  El índice es importante porque nos ayuda a saber el ángulo
+        #  El índice es importante porque nos ayuda a saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
         index, distance = range_values[0]
 
         # Avanza si está entre dos umbrales de distancia
@@ -81,6 +80,7 @@ class PersonFollower(Node):
             angle = index + MIN_FRONT
 
             angle_error = CENTRE - angle
+            print(f"angle_error: {angle_error}")
 
             # Pasamos la diferencia de ángulos a radianes
             wz = angle_error / pi
@@ -94,7 +94,7 @@ class PersonFollower(Node):
                   self.prev_angle_error * DERIVATE_SMOOTH_FACTOR +
                   self.angle_error_acumulation * INTEGRAL_SMOOTH_FACTOR)
 
-            print(f"vx: {vx} |  wz: {wz} | angle_min: {angle_min}")
+            print(f"vx: {vx} |  wz: {wz}")
             print("--------")
 
         else:
