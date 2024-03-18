@@ -21,21 +21,21 @@ from geometry_msgs.msg import Twist
 from math import pi
 
 CENTRE = 180
-ANGLE = 25
+ANGLE = 30
 
-MIN_FRONT = CENTRE - ANGLE  # 160
-MAX_FRONT = CENTRE + ANGLE  # 200
+MIN_FRONT = CENTRE - ANGLE  # 150
+MAX_FRONT = CENTRE + ANGLE  # 210
 
-MIN_DISTANCE = 0.5
+MIN_DISTANCE = 0.55
 MAX_DISTANCE = 1.75
 MAX_VEL = 6.67
 
-VEL_SMOOTH_FACTOR = 0.6 # 0.075
-ANGLE_SMOOTH_FACTOR = 0.25
-# Creo que lo de la derivada y la integral, o se ponen valores muy bajos, o molesta
+VEL_SMOOTH_FACTOR = 0.7
+ANGLE_SMOOTH_FACTOR = 0.3
 
-DERIVATE_SMOOTH_FACTOR = 0 # 0.05
-INTEGRAL_SMOOTH_FACTOR = 0 # 0.0005
+# Lo de la derivada y la integral, o se ponen valores muy bajos, o molestan
+DERIVATE_SMOOTH_FACTOR = 0.005
+INTEGRAL_SMOOTH_FACTOR = 0.00005
 
 class PersonFollower(Node):
 
@@ -73,7 +73,7 @@ class PersonFollower(Node):
 
         # Avanza si está entre dos umbrales de distancia
         if MIN_DISTANCE < distance < MAX_DISTANCE:
-            # Idea: a más distancia, más velocidad.
+            # Idea: a más distancia, más velocidad (pero con límites)
             vx = min(distance - MIN_DISTANCE, MAX_VEL)
 
             # El índice estará entre 0 y 2·Ángulo  (o angulo_izq + angulo_der)
@@ -88,7 +88,7 @@ class PersonFollower(Node):
             self.prev_angle_error += angle_error
             self.angle_error_acumulation = 0.0 if angle_error == 0 else (self.angle_error_acumulation + angle_error)
 
-            # Aplicamos las constantes para suavizar las velocidades
+            # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente)
             vx *= VEL_SMOOTH_FACTOR
             wz = (wz * ANGLE_SMOOTH_FACTOR +
                   self.prev_angle_error * DERIVATE_SMOOTH_FACTOR +
