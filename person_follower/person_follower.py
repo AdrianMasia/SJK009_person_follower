@@ -21,19 +21,26 @@ from geometry_msgs.msg import Twist
 from math import pi
 
 CENTRE = 180
-ANGLE = 20
+ANGLE = 25
 
 MIN_FRONT = CENTRE - ANGLE  # 160
 MAX_FRONT = CENTRE + ANGLE  # 200
 
-MIN_DISTANCE = 0.3
+MIN_DISTANCE = 0.5
 MAX_DISTANCE = 1.75
-VEL_SMOOTH_FACTOR = 0.03
-ANGLE_SMOOTH_FACTOR = 0.45
-
 MAX_VEL = 6.67
 
+VEL_SMOOTH_FACTOR = 0.6 # 0.075
+ANGLE_SMOOTH_FACTOR = 0.25
+# Creo que lo de la derivada y la integral, o se ponen valores muy bajos, o molesta
+
+DERIVATE_SMOOTH_FACTOR = 0 # 0.05
+INTEGRAL_SMOOTH_FACTOR = 0 # 0.0005
+
 class PersonFollower(Node):
+
+    prev_angle_error = 0.0
+    angle_error_acumulation = 0.0
 
     def __init__(self):
         super().__init__('person_follower')
@@ -67,21 +74,28 @@ class PersonFollower(Node):
         # Avanza si está entre dos umbrales de distancia
         if MIN_DISTANCE < distance < MAX_DISTANCE:
             # Idea: a más distancia, más velocidad.
-            # vx = min(distance - MIN_DISTANCE, MAX_VEL)
+            vx = min(distance - MIN_DISTANCE, MAX_VEL)
 
             # TODO: ver bien como va la velocidad
-            vx = MAX_VEL
+            #vx = MAX_VEL
 
             # El índice estará entre 0 y 2·Ángulo  (o angulo_izq + angulo_der)
             #   Por lo tanto, desplazamos el indice para que sea el ángulo real.
             angle = index + MIN_FRONT
 
-            # Pasamos el ángulo a radianes
-            wz = (CENTRE - angle) / pi
+            angle_error = CENTRE - angle
+
+            # Pasamos la diferencia de ángulos a radianes
+            wz = angle_error / pi
+
+            self.prev_angle_error += angle_error
+            self.angle_error_acumulation = 0.0 if angle_error == 0 else (self.angle_error_acumulation + angle_error)
 
             # Aplicamos las constantes para suavizar las velocidades
             vx *= VEL_SMOOTH_FACTOR
-            wz *= ANGLE_SMOOTH_FACTOR
+            wz = (wz * ANGLE_SMOOTH_FACTOR +
+                  self.prev_angle_error * DERIVATE_SMOOTH_FACTOR +
+                  self.angle_error_acumulation * INTEGRAL_SMOOTH_FACTOR)
 
             print(f"vx: {vx} |  wz: {wz} | angle_min: {angle_min}")
             print("--------")
