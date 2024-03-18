@@ -69,7 +69,7 @@ class PersonFollower(Node):
             # Idea: a más distancia, más velocidad.
             # vx = min(distance - MIN_DISTANCE, MAX_VEL)
 
-            # TODO: ver bien como va la velocidad.
+            # TODO: ver bien como va la velocidad
             vx = MAX_VEL
 
             # El índice estará entre 0 y 2·Ángulo  (o angulo_izq + angulo_der)
