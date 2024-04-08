@@ -25,7 +25,7 @@ REAL_CENTRE = 180
 ANGLE = 30
 
 # Constante para corregir el error de la detección del laser.
-LIDAR_ERROR = -30
+LIDAR_ERROR = -45
 # Sentido horario (1 sí, -1 no)
 IS_CLOCKWISE = -1
 
@@ -39,7 +39,7 @@ MIN_DISTANCE = 0.50
 MAX_DISTANCE = 1.75
 MAX_VEL = 6.67
 
-VEL_SMOOTH_FACTOR = 0.2 # 0.5
+VEL_SMOOTH_FACTOR = 0.1 # 0.5
 ANGLE_SMOOTH_FACTOR = 0.05 # 0.15
 
 DERIVATE_SMOOTH_FACTOR = 0 # 0.010
