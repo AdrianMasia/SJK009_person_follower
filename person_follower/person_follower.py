@@ -24,29 +24,31 @@ from math import pi
 REAL_CENTRE = 180
 ANGLE = 30
 
-# Constante para corregir el error de la detección del laser.
-LIDAR_ERROR = -90
+# Constante para corregir el error de la detección del ángulo laser.
+LIDAR_ERROR = -100
 # Sentido horario (1 sí, -1 no)
 IS_CLOCKWISE = -1
 
 # Centro con el error del LIDAR.
 CENTRE = REAL_CENTRE + LIDAR_ERROR
 
-MIN_FRONT = CENTRE - ANGLE  # 150
-MAX_FRONT = CENTRE + ANGLE  # 210
+MIN_FRONT = CENTRE - ANGLE # 150
+MAX_FRONT = CENTRE + ANGLE # 210
 
-ERROR_MIN_DISTANCE = -0.40
-ERROR_MAX_DISTANCE = ERROR_MIN_DISTANCE
+ERROR_MIN_DISTANCE = -0.15
+ERROR_MAX_DISTANCE = -1.00
 
 MIN_DISTANCE = 0.50 + ERROR_MIN_DISTANCE
-MAX_DISTANCE = 1.75 + ERROR_MAX_DISTANCE
+MAX_DISTANCE = 2.50 + ERROR_MAX_DISTANCE
 MAX_VEL = 6.67
+MIN_VEL = 0.20
 
-VEL_SMOOTH_FACTOR = 0.1 # 0.5
-ANGLE_SMOOTH_FACTOR = 0.1 # 0.15
+VEL_SMOOTH_FACTOR = 0.50 # 0.5
+ANGLE_SMOOTH_FACTOR = 0.15 # 0.15
 
-DERIVATE_SMOOTH_FACTOR = 0 # 0.010
-INTEGRAL_SMOOTH_FACTOR = 0 # 0.00010
+DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
+INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
+
 
 class PersonFollower(Node):
 
@@ -112,6 +114,8 @@ class PersonFollower(Node):
         else:
             vx = 0.0
             wz = 0.0
+            self.prev_angle_error = 0.0
+            self.angle_error_acumulation = 0.0
 
         output_msg = Twist()
         output_msg.linear.x = vx
