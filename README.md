@@ -30,21 +30,21 @@ sudo cp ~/ros2_ws/src/SJK009_person_follower/webots/turtlebot3_burger_pedestrian
 ```
 source /opt/ros/foxy/setup.bash
 source ~/ros2_ws/install/setup.bash
-export ROS_LOCALHOST_ONLY=1
+export ROS_LOCALHOST_ONLY=1 # poner a 0 si queremos que sea en remoto
 ros2 run person_follower person_follower 
 ```
 6. In a new terminal, launch the Webots simulator
 ```
 export WEBOTS_HOME=~/webots-R2022b
 source /opt/ros/foxy/setup.bash
-export ROS_LOCALHOST_ONLY=1
+export ROS_LOCALHOST_ONLY=1 # poner a 0 si queremos que sea en remoto
 ros2 launch webots_ros2_turtlebot robot_launch.py \
   world:=turtlebot3_burger_pedestrian_simple.wbt
 ```
 7. In a new terminal, launch RViz
 ```
 source /opt/ros/foxy/setup.bash
-export =0
+export ROS_LOCALHOST_ONLY=1 # poner a 0 si queremos que sea en remoto
 rviz2 -d ~/ros2_ws/src/SJK009_person_follower/webots/config.rviz
 ```
 
