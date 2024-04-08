@@ -26,6 +26,8 @@ ANGLE = 30
 
 # Constante para corregir el error de la detección del laser.
 LIDAR_ERROR = -30
+# Sentido horario (1 sí, -1 no)
+IS_CLOCKWISE = -1
 
 # Centro con el error del LIDAR.
 CENTRE = REAL_CENTRE + LIDAR_ERROR
@@ -86,7 +88,7 @@ class PersonFollower(Node):
             #   Por lo tanto, desplazamos el indice para que sea el ángulo real.
             angle = index + MIN_FRONT
 
-            angle_error = CENTRE - angle
+            angle_error = IS_CLOCKWISE * (CENTRE - angle)
             print(f"angle_error: {angle_error}")
 
             # Pasamos la diferencia de ángulos a radianes
