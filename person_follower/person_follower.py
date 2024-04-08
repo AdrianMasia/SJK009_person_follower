@@ -102,7 +102,7 @@ class PersonFollower(Node):
             self.prev_angle_error += angle_error
             self.angle_error_acumulation = 0.0 if angle_error == 0 else (self.angle_error_acumulation + angle_error)
 
-            # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente)
+            # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente )
             vx *= VEL_SMOOTH_FACTOR
             wz = (wz * ANGLE_SMOOTH_FACTOR +
                   self.prev_angle_error * DERIVATE_SMOOTH_FACTOR +
