@@ -20,8 +20,7 @@ from geometry_msgs.msg import Twist
 
 from math import pi
 
-
-
+# -- CONSTANTES -- #
 REAL_CENTRE = 180
 ANGLE = 30
 
