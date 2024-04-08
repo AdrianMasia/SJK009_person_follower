@@ -24,6 +24,7 @@ from math import pi
 REAL_CENTRE = 180
 ANGLE = 30
 
+# Constante para corregir el error de la detección del laser.
 LIDAR_ERROR = -30
 
 # Centro con el error del LIDAR.
