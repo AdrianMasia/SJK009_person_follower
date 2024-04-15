@@ -141,6 +141,12 @@ source /opt/ros/foxy/setup.bash
 export ROS_DOMAIN_ID=24 # or 25,26,27
 rviz2 -d tb2.rviz
 ```
+
+## Ejecutar el programa en el robot
+```
+ros2 run person_follower person_follower --ros-args -r cmd_vel:=/commands/velocity
+```
+
 ## Lo del apt
 ```
 sudo apt install ros-foxy-teleop-twist-keyboard
