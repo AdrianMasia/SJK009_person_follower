@@ -110,6 +110,9 @@ class PersonFollower(Node):
         #  El índice es importante porque nos ayuda a saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
         index, distance = range_values[0]
 
+        print("self.min_distance: ", self.min_distance)
+        print("distance: ", distance)
+
         # Avanza si está entre dos umbrales de distancia
         if self.min_distance < distance < self.max_distance:
             # Idea: a más distancia, más velocidad (pero con límites)
