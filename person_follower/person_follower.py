@@ -111,6 +111,7 @@ class PersonFollower(Node):
         index, distance = range_values[0]
 
         print("self.min_distance: ", self.min_distance)
+
         print("distance: ", distance)
 
         # Avanza si está entre dos umbrales de distancia
