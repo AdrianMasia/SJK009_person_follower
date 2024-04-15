@@ -30,21 +30,21 @@ sudo cp ~/ros2_ws/src/SJK009_person_follower/webots/turtlebot3_burger_pedestrian
 ```
 source /opt/ros/foxy/setup.bash
 source ~/ros2_ws/install/setup.bash
-export ROS_LOCALHOST_ONLY=1 # poner a 0 si queremos que sea en remoto
+export ROS_LOCALHOST_ONLY=0 # poner a 0 si queremos que sea en remoto
 ros2 run person_follower person_follower 
 ```
 6. In a new terminal, launch the Webots simulator
 ```
 export WEBOTS_HOME=~/webots-R2022b
 source /opt/ros/foxy/setup.bash
-export ROS_LOCALHOST_ONLY=1 # poner a 0 si queremos que sea en remoto
+export ROS_LOCALHOST_ONLY=0 # poner a 0 si queremos que sea en remoto
 ros2 launch webots_ros2_turtlebot robot_launch.py \
   world:=turtlebot3_burger_pedestrian_simple.wbt
 ```
 7. In a new terminal, launch RViz
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_LOCALHOST_ONLY=1 # poner a 0 si queremos que sea en remoto
+export ROS_LOCALHOST_ONLY=0 # poner a 0 si queremos que sea en remoto
 rviz2 -d ~/ros2_ws/src/SJK009_person_follower/webots/config.rviz
 ```
 
@@ -78,24 +78,27 @@ Connection between a laptop and the TurtleBot 2
 
 Open a terminal in the laptop and execute the command:
 ```
-ssh user@192.168.0.224
+ssh user@192.168.0.227
 ```
 The password is bastante obvia, la verdad (no la voy a poner pública).
 
-Each robot has a different IP address 192.168.0.XXX ending in 224, 225, 226 or 227 (see label on top of the NUC).
+Each robot has a different IP address 192.168.0.XXX ending in 227, 225, 226 or 227 (see label on top of the NUC).
 
 ## Run the ROS Kobuki node:
 
 In an ssh terminal execute the commands:
 ```
+ssh user@192.168.0.227
+```
+```
 source /opt/ros/foxy/setup.bash
 source ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=24
+export ROS_DOMAIN_ID=27
 ros2 launch kobuki_node kobuki_node-launch.py 
 ```
 Use these numbers for each robot:
 ROS_DOMAIN_ID 	IP address
-24 	192.168.0.224
+24 	192.168.0.227
 25 	192.168.0.225
 26 	192.168.0.226
 27 	192.168.0.227
@@ -105,22 +108,28 @@ ROS_DOMAIN_ID 	IP address
 In a laptop terminal execute the commands:
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=24 # or 25,26,27
+export ROS_DOMAIN_ID=27 # or 25,26,27
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/commands/velocity
 ```
 ## Run the ROS Lidar node:
 
 In an ssh terminal execute the commands:
 ```
+ssh user@192.168.0.227
+```
+```
 source /opt/ros/foxy/setup.bash
 source ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=24 # or 25,26,27
+export ROS_DOMAIN_ID=27 # or 25,26,27
 ros2 launch rplidar_ros rplidar_a2m8_launch.py serial_port:=/dev/rplidar
 ```
 The Lidar should start to turn. In another ssh terminal execute the commands:
 ```
+ssh user@192.168.0.227
+```
+```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=24 # or 25,26,27
+export ROS_DOMAIN_ID=27 # or 25,26,27
 ros2 run tf2_ros static_transform_publisher 0 0 0 3.141592 0 0 base_footprint laser
 ```
 ## Check  the /scan topic from a laptop terminal:
@@ -128,7 +137,7 @@ ros2 run tf2_ros static_transform_publisher 0 0 0 3.141592 0 0 base_footprint la
 In a laptop terminal execute the commands:
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=24 # or 25,26,27
+export ROS_DOMAIN_ID=27 # or 25,26,27
 ros2 topic hz /scan
 ```
 The displayed average rate should be around 10.9 Hz.
@@ -138,9 +147,18 @@ The displayed average rate should be around 10.9 Hz.
 Download the tb2.rviz configuration file and execute the commands in a laptop terminal:
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=24 # or 25,26,27
+export ROS_DOMAIN_ID=27 # or 25,26,27
 rviz2 -d tb2.rviz
 ```
+
+## Ejecutar el programa en el robot
+```
+source /opt/ros/foxy/setup.bash
+source ~/ros2_ws/install/setup.bash
+export ROS_LOCALHOST_ONLY=0
+ros2 run person_follower person_follower --ros-args -r cmd_vel:=/commands/velocity
+```
+
 ## Lo del apt
 ```
 sudo apt install ros-foxy-teleop-twist-keyboard
