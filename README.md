@@ -144,6 +144,9 @@ rviz2 -d tb2.rviz
 
 ## Ejecutar el programa en el robot
 ```
+source /opt/ros/foxy/setup.bash
+source ~/ros2_ws/install/setup.bash
+export ROS_LOCALHOST_ONLY=1
 ros2 run person_follower person_follower --ros-args -r cmd_vel:=/commands/velocity
 ```
 
