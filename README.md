@@ -146,7 +146,7 @@ rviz2 -d tb2.rviz
 ```
 source /opt/ros/foxy/setup.bash
 source ~/ros2_ws/install/setup.bash
-export ROS_LOCALHOST_ONLY=1
+export ROS_LOCALHOST_ONLY=0
 ros2 run person_follower person_follower --ros-args -r cmd_vel:=/commands/velocity
 ```
 
