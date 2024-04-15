@@ -21,25 +21,22 @@ from geometry_msgs.msg import Twist
 from math import pi
 
 # -- CONSTANTES -- #
-REAL_CENTRE = 180
+CENTRE = 180
 ANGLE = 30
 
 # Constante para corregir el error de la detección del ángulo laser.
-LIDAR_ERROR = -100
+#LIDAR_ERROR = -100
 # Sentido horario (1 sí, -1 no)
-IS_CLOCKWISE = -1
+#IS_CLOCKWISE = -1
 
 # Centro con el error del LIDAR.
-CENTRE = REAL_CENTRE + LIDAR_ERROR
+#CENTRE = REAL_CENTRE + LIDAR_ERROR
 
 MIN_FRONT = CENTRE - ANGLE # 150
 MAX_FRONT = CENTRE + ANGLE # 210
 
-ERROR_MIN_DISTANCE = -0.15
-ERROR_MAX_DISTANCE = -1.00
-
-MIN_DISTANCE = 0.50 + ERROR_MIN_DISTANCE
-MAX_DISTANCE = 2.50 + ERROR_MAX_DISTANCE
+MIN_DISTANCE = 0.50
+MAX_DISTANCE = 2.50
 MAX_VEL = 6.67
 MIN_VEL = 0.20
 
@@ -49,11 +46,39 @@ ANGLE_SMOOTH_FACTOR = 0.15 # 0.15
 DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
 INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
 
-
 class PersonFollower(Node):
 
+    # Atributos realacionados con el suavizado del giro
     prev_angle_error = 0.0
     angle_error_acumulation = 0.0
+
+    # -------- #
+    # Atributos para corregir el "error" que se produce al pasar de la simulación al robot real
+
+    # Constante para corregir el error de la detección del ángulo laser.
+    lidar_angle_error = -100
+    # Sentido horario (1 sí, -1 no)
+    is_clockwise = -1
+
+    # Atributos para corregir el error en la distancia
+    error_min_distance = -0.15
+    error_max_distance = -1.00
+
+    min_distance = MIN_DISTANCE + error_min_distance
+    max_distance = MAX_DISTANCE + error_max_distance
+
+    # Centro con el error del LIDAR (el ángulo del laser).
+    centre = CENTRE + lidar_angle_error
+    min_front = MIN_FRONT + lidar_angle_error
+    max_front = MAX_FRONT + lidar_angle_error
+
+    def actualizar_centro(self, new_centre = lidar_angle_error):
+        self.centre     = CENTRE + new_centre
+        self.min_front  = MIN_FRONT + new_centre
+        self.max_front  = MAX_FRONT + new_centre
+
+
+    # -------- #
 
     def __init__(self):
         super().__init__('person_follower')
@@ -65,6 +90,7 @@ class PersonFollower(Node):
             10)
         self.subscription  # prevent unused variable warning
 
+        self.actualizar_centro()
 
     def listener_callback(self, input_msg):
         angle_min = input_msg.angle_min
@@ -76,7 +102,7 @@ class PersonFollower(Node):
         #
 
         # El conjunto de valores tal que: (indice de [0, ANGLE*2] , distancia)
-        range_values = list(enumerate(ranges[MIN_FRONT : MAX_FRONT]))
+        range_values = list(enumerate(ranges[self.min_front : self.max_front]))
         # Conjunto ordenado por la distancia (x es la tupla: x[0] indice, x[1] distanca)
         range_values.sort(key= lambda x: x[1])
 
@@ -85,15 +111,17 @@ class PersonFollower(Node):
         index, distance = range_values[0]
 
         # Avanza si está entre dos umbrales de distancia
-        if MIN_DISTANCE < distance < MAX_DISTANCE:
+        if self.min_distance < distance < self.max_distance:
             # Idea: a más distancia, más velocidad (pero con límites)
-            vx = min(distance - MIN_DISTANCE, MAX_VEL)
+            vx = min(distance - self.min_distance, MAX_VEL)
+            # Cuando está muy cerca va muy lento, corrección:
+            vx = max(vx, MIN_VEL)
 
             # El índice estará entre 0 y 2·Ángulo  (o angulo_izq + angulo_der)
             #   Por lo tanto, desplazamos el indice para que sea el ángulo real.
-            angle = index + MIN_FRONT
+            angle = index + self.min_front
 
-            angle_error = IS_CLOCKWISE * (CENTRE - angle)
+            angle_error = self.is_clockwise * (self.centre - angle)
             print(f"angle_error: {angle_error}")
 
             # Pasamos la diferencia de ángulos a radianes
@@ -121,6 +149,7 @@ class PersonFollower(Node):
         output_msg.linear.x = vx
         output_msg.angular.z = wz
         self.publisher_.publish(output_msg)
+
 def main(args=None):
     rclpy.init(args=args)
     person_follower = PersonFollower()
