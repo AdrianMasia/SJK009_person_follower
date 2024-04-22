@@ -21,19 +21,10 @@ from geometry_msgs.msg import Twist
 from math import pi
 
 # -- CONSTANTES -- #
-CENTRE = 180
-ANGLE = 30
 
-# Constante para corregir el error de la detección del ángulo laser.
-#LIDAR_ERROR = -100
-# Sentido horario (1 sí, -1 no)
-#IS_CLOCKWISE = -1
-
-# Centro con el error del LIDAR.
-#CENTRE = REAL_CENTRE + LIDAR_ERROR
-
-MIN_FRONT = CENTRE - ANGLE # 150
-MAX_FRONT = CENTRE + ANGLE # 210
+# En el caso de 360
+ANGLE_IF_ORIGINAL_MAX_RANGE = 30
+ORIGINAL_MAX_RANGE = 360
 
 MIN_DISTANCE = 0.50
 MAX_DISTANCE = 2.50
@@ -47,6 +38,9 @@ DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
 INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
 
 class PersonFollower(Node):
+
+    # ----- #
+    centre = 0.0
 
     # Atributos realacionados con el suavizado del giro
     prev_angle_error = 0.0
@@ -67,17 +61,39 @@ class PersonFollower(Node):
     min_distance = MIN_DISTANCE + error_min_distance
     max_distance = MAX_DISTANCE + error_max_distance
 
-    # Centro con el error del LIDAR (el ángulo del laser).
-    centre = CENTRE + lidar_angle_error
-    min_front = MIN_FRONT + lidar_angle_error
-    max_front = MAX_FRONT + lidar_angle_error
+    def lista_distancias_ordenada(self, ranges):
 
-    def actualizar_centro(self, new_centre = lidar_angle_error):
-        self.centre     = CENTRE + new_centre
-        self.min_front  = MIN_FRONT + new_centre
-        self.max_front  = MAX_FRONT + new_centre
+        # El list-enumerate es para tener un alista cuyos valores sea tal que: (indice , distancia)
+        ranges = list(enumerate(ranges))
 
+        # Caso en el que hay un cambio de signo en medio.
+        if self.min_front < 0 and self.max_front >= 0:
+            valores_izq = ranges[self.min_front:]
+            valores_der = ranges[: self.max_front + 1]
+        else:
+            valores_izq = ranges[self.min_front : self.centre]
+            valores_der = ranges[self.centre : self.max_front + 1]
 
+        distancias_ordenadas = valores_izq + valores_der
+
+        # Conjunto ordenado por la distancia (x es la tupla: x[0] indice, x[1] distanca)
+        distancias_ordenadas.sort(key= lambda x: x[1])
+
+        return distancias_ordenadas
+
+    def asignar_constantes_y_correccion_angulo(self, num_mediciones, correccion_angulo_robot = lidar_angle_error):
+
+        angle = int( num_mediciones * ANGLE_IF_ORIGINAL_MAX_RANGE / ORIGINAL_MAX_RANGE)
+
+        # asignamos las variables
+        self.centre = num_mediciones // 2
+        self.min_front = self.centre - angle
+        self.max_front = self.centre + angle
+
+        # ajustamos el centro a los errores
+        self.centre += correccion_angulo_robot
+        self.min_front += correccion_angulo_robot
+        self.max_front += correccion_angulo_robot
     # -------- #
 
     def __init__(self):
@@ -90,8 +106,6 @@ class PersonFollower(Node):
             10)
         self.subscription  # prevent unused variable warning
 
-        self.actualizar_centro()
-
     def listener_callback(self, input_msg):
         angle_min = input_msg.angle_min
         angle_max = input_msg.angle_max
@@ -101,15 +115,12 @@ class PersonFollower(Node):
         # your code for computing vx, wz
         #
 
-        # El conjunto de valores tal que: (indice de [0, ANGLE*2] , distancia)
-        range_values = list(enumerate(ranges[self.min_front : self.max_front]))
-        # Conjunto ordenado por la distancia (x es la tupla: x[0] indice, x[1] distanca)
-        range_values.sort(key= lambda x: x[1])
+        self.asignar_constantes(len(ranges))
+        range_values = self.lista_distancias_ordenada(ranges)
 
         # Distancia menor y su índice.
         #  El índice es importante porque nos ayuda a saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
         index, distance = range_values[0]
-
         print("self.min_distance: ", self.min_distance)
 
         print("distance: ", distance)
