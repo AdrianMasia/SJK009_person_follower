@@ -115,12 +115,12 @@ class PersonFollower(Node):
         # your code for computing vx, wz
         #
 
-        self.asignar_constantes(len(ranges))
+        self.asignar_constantes_y_correccion_angulo(len(ranges))
         range_values = self.lista_distancias_ordenada(ranges)
 
         # Distancia menor y su índice.
         #  El índice es importante porque nos ayuda a saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
-        index, distance = range_values[0]
+        angle, distance = range_values[0]
         print("self.min_distance: ", self.min_distance)
 
         print("distance: ", distance)
@@ -131,10 +131,6 @@ class PersonFollower(Node):
             vx = min(distance - self.min_distance, MAX_VEL)
             # Cuando está muy cerca va muy lento, corrección:
             vx = max(vx, MIN_VEL)
-
-            # El índice estará entre 0 y 2·Ángulo  (o angulo_izq + angulo_der)
-            #   Por lo tanto, desplazamos el indice para que sea el ángulo real.
-            angle = index + self.min_front
 
             angle_error = self.is_clockwise * (self.centre - angle)
             print(f"angle_error: {angle_error}")
