@@ -52,7 +52,7 @@ class PersonFollower(Node):
     # Atributos para corregir el "error" que se produce al pasar de la simulación al robot real
 
     # Constante para corregir el error de la detección del ángulo laser.
-    lidar_angle_error = -540
+    lidar_angle_error = -542
     # Sentido horario (1 sí, -1 no)
     is_clockwise = -1
 
@@ -87,6 +87,8 @@ class PersonFollower(Node):
 
         #angle = int( num_mediciones * ANGLE_IF_ORIGINAL_MAX_RANGE / ORIGINAL_MAX_RANGE)
         angle = num_mediciones * ANGLE_IF_ORIGINAL_MAX_RANGE // ORIGINAL_MAX_RANGE
+
+        # TODO: idea: 1 es la distancia mínima, 0 la máxima y el ángulo de detección varia en función de la velocidad máxima anterior.
 
         # asignamos las variables
         self.centre = num_mediciones // 2
@@ -141,6 +143,7 @@ class PersonFollower(Node):
             # Cuando está muy cerca va muy lento, corrección:
             vx = max(vx, MIN_VEL)
 
+            # TODO: Revisar de aquí al final (Por alguna razón, se para y no gira a la derecha)
             angle_error = self.is_clockwise * (self.centre - angle)
             print(f"angle_error: {angle_error}")
 
