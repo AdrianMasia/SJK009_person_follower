@@ -78,7 +78,7 @@ Connection between a laptop and the TurtleBot 2
 
 Open a terminal in the laptop and execute the command:
 ```
-ssh user@192.168.0.227
+ssh user@192.168.0.225
 ```
 The password is bastante obvia, la verdad (no la voy a poner pública).
 
@@ -88,12 +88,12 @@ Each robot has a different IP address 192.168.0.XXX ending in 227, 225, 226 or 2
 
 In an ssh terminal execute the commands:
 ```
-ssh user@192.168.0.227
+ssh user@192.168.0.225
 ```
 ```
 source /opt/ros/foxy/setup.bash
 source ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=27
+export ROS_DOMAIN_ID=25
 ros2 launch kobuki_node kobuki_node-launch.py 
 ```
 Use these numbers for each robot:
@@ -108,28 +108,28 @@ ROS_DOMAIN_ID 	IP address
 In a laptop terminal execute the commands:
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=27 # or 25,26,27
+export ROS_DOMAIN_ID=25 # or 24,26,27
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/commands/velocity
 ```
 ## Run the ROS Lidar node:
 
 In an ssh terminal execute the commands:
 ```
-ssh user@192.168.0.227
+ssh user@192.168.0.225
 ```
 ```
 source /opt/ros/foxy/setup.bash
 source ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=27 # or 25,26,27
+export ROS_DOMAIN_ID=25 # or 25,26,27
 ros2 launch rplidar_ros rplidar_a2m8_launch.py serial_port:=/dev/rplidar
 ```
 The Lidar should start to turn. In another ssh terminal execute the commands:
 ```
-ssh user@192.168.0.227
+ssh user@192.168.0.225
 ```
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=27 # or 25,26,27
+export ROS_DOMAIN_ID=25 # or 25,26,27
 ros2 run tf2_ros static_transform_publisher 0 0 0 3.141592 0 0 base_footprint laser
 ```
 ## Check  the /scan topic from a laptop terminal:
@@ -137,7 +137,7 @@ ros2 run tf2_ros static_transform_publisher 0 0 0 3.141592 0 0 base_footprint la
 In a laptop terminal execute the commands:
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=27 # or 25,26,27
+export ROS_DOMAIN_ID=25 # or 25,26,27
 ros2 topic hz /scan
 ```
 The displayed average rate should be around 10.9 Hz.
@@ -147,7 +147,7 @@ The displayed average rate should be around 10.9 Hz.
 Download the tb2.rviz configuration file and execute the commands in a laptop terminal:
 ```
 source /opt/ros/foxy/setup.bash
-export ROS_DOMAIN_ID=27 # or 25,26,27
+export ROS_DOMAIN_ID=25 # or 25,26,27
 rviz2 -d tb2.rviz
 ```
 
@@ -155,8 +155,9 @@ rviz2 -d tb2.rviz
 ```
 source /opt/ros/foxy/setup.bash
 source ~/ros2_ws/install/setup.bash
-export ROS_LOCALHOST_ONLY=0
+export ROS_LOCALHOST_ONLY=1
 ros2 run person_follower person_follower --ros-args -r cmd_vel:=/commands/velocity
+
 ```
 
 ## Lo del apt

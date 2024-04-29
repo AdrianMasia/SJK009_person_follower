@@ -40,7 +40,8 @@ INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
 class PersonFollower(Node):
 
     # ----- #
-    centre = 0.0
+    centre = 0
+    max_angle = 360
 
     # Atributos realacionados con el suavizado del giro
     prev_angle_error = 0.0
@@ -83,12 +84,14 @@ class PersonFollower(Node):
 
     def asignar_constantes_y_correccion_angulo(self, num_mediciones, correccion_angulo_robot = lidar_angle_error):
 
-        angle = int( num_mediciones * ANGLE_IF_ORIGINAL_MAX_RANGE / ORIGINAL_MAX_RANGE)
+        #angle = int( num_mediciones * ANGLE_IF_ORIGINAL_MAX_RANGE / ORIGINAL_MAX_RANGE)
+        angle = num_mediciones * ANGLE_IF_ORIGINAL_MAX_RANGE // ORIGINAL_MAX_RANGE
 
         # asignamos las variables
         self.centre = num_mediciones // 2
         self.min_front = self.centre - angle
         self.max_front = self.centre + angle
+        self.max_angle = num_mediciones
 
         # ajustamos el centro a los errores
         self.centre += correccion_angulo_robot
@@ -134,6 +137,9 @@ class PersonFollower(Node):
 
             angle_error = self.is_clockwise * (self.centre - angle)
             print(f"angle_error: {angle_error}")
+
+            # Normalizamos el ángulo para que esté entre 0 y 360
+            angle_error = angle_error * ORIGINAL_MAX_RANGE / self.max_angle
 
             # Pasamos la diferencia de ángulos a radianes
             wz = angle_error / pi
