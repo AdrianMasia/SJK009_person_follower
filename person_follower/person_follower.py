@@ -34,8 +34,9 @@ MIN_VEL = 0.20
 VEL_SMOOTH_FACTOR = 0.50 # 0.5
 ANGLE_SMOOTH_FACTOR = 0.15 # 0.15
 
-DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
-INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
+# Esto molesta y supongo que si se ajustan los valores aportaría poco.
+# DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
+# INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
 
 class PersonFollower(Node):
 
@@ -149,9 +150,8 @@ class PersonFollower(Node):
 
             # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente )
             vx *= VEL_SMOOTH_FACTOR
-            wz = (wz * ANGLE_SMOOTH_FACTOR +
-                  self.prev_angle_error * DERIVATE_SMOOTH_FACTOR +
-                  self.angle_error_acumulation * INTEGRAL_SMOOTH_FACTOR)
+            #wz = (wz * ANGLE_SMOOTH_FACTOR + self.prev_angle_error * DERIVATE_SMOOTH_FACTOR + self.angle_error_acumulation * INTEGRAL_SMOOTH_FACTOR)
+            wz = wz * ANGLE_SMOOTH_FACTOR
 
             print(f"vx: {vx} |  wz: {wz}")
             print("--------")
