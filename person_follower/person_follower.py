@@ -52,7 +52,7 @@ class PersonFollower(Node):
     # Atributos para corregir el "error" que se produce al pasar de la simulación al robot real
 
     # Constante para corregir el error de la detección del ángulo laser.
-    lidar_angle_error = -100
+    lidar_angle_error = -540
     # Sentido horario (1 sí, -1 no)
     is_clockwise = -1
 
@@ -123,7 +123,12 @@ class PersonFollower(Node):
         range_values = self.lista_distancias_ordenada(ranges)
 
         # Distancia menor y su índice.
-        #  El índice es importante porque nos ayuda a saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
+
+        # Forma "eficaz" de que no de error si no detecta ángulo
+        if len(range_values) == 0:
+            return None
+
+        #  "angle" nos sirve para saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
         angle, distance = range_values[0]
         print("self.min_distance: ", self.min_distance)
 
