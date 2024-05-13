@@ -177,7 +177,7 @@ class PersonFollower(Node):
             vx = max(vx, MIN_VEL)
 
             # Aquí se calcula la diferencia entre el ángulo detectado y el centro
-            angle_error = (self.max_angle - angle) if (self.middle_angle >= angle) else (self.centre - angle)
+            angle_error = (self.max_angle - angle) if (angle >= self.middle_angle) else (self.centre - angle)
 
             angle_error *= self.is_clockwise
             print(f"angle_error: {angle_error}")
