@@ -49,7 +49,7 @@ def normalizar_a_la_inversa(valor, min_v=MIN_VEL, max_v=MAX_VEL, valor_minimo=MI
     return 1 - (1 - valor_minimo) * (valor - min_v) / (max_v - min_v)
 
 # Función para redondear bien la unidad
-def redondear_bien_unidad(entrada):
+def redondear_bien_a_la_unidad(entrada):
     entrada_sin_decimales = int(entrada)
     valor = entrada - entrada_sin_decimales
     if valor < 0.5:
@@ -66,17 +66,13 @@ class PersonFollower(Node):
     velocidad_anterior = MIN_VEL
     # -------- #
 
-    # Atributos realacionados con el suavizado del giro
-    #prev_angle_error = 0.0
-    #angle_error_acumulation = 0.0
-
     # -------- #
     # Atributos para corregir el "error" que se produce al pasar de la simulación al robot real
 
     # Constante para corregir el error de la detección del ángulo laser.
     lidar_angle_error = -542
     # Sentido horario (1 sí, -1 no)
-    is_clockwise = -1
+    is_clockwise = 1
 
     # Atributos para corregir el error en la distancia en caso de que el robot detecte más o menos
     error_min_distance = -0.15
@@ -123,16 +119,18 @@ class PersonFollower(Node):
 
         # Ajustamos el ángulo de detección inversamente proporcional: 1 es la distancia mínima, "valor_minimo" es
         #   la distancia máxima y el ángulo de detección varia en función de la velocidad anterior
-        angle = redondear_bien_unidad((angle * normalizar_a_la_inversa(vel_anterior)))
+        angle = redondear_bien_a_la_unidad((angle * normalizar_a_la_inversa(vel_anterior)))
 
         # Asignamos las variables
         self.centre = num_mediciones // 2   # Se asume que el centro está a la mitad del conjunto de mediciones
+        self.middle_angle = num_mediciones
         self.min_front = self.centre - angle
         self.max_front = self.centre + angle
         self.max_angle = num_mediciones
 
         # Ajustamos el centro a los errores
         self.centre += correccion_angulo_robot
+        self.middle_angle += correccion_angulo_robot
         self.min_front += correccion_angulo_robot
         self.max_front += correccion_angulo_robot
     # -------- #
@@ -166,8 +164,10 @@ class PersonFollower(Node):
 
         #  "angle" nos sirve para saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
         angle, distance = range_values[0]
-        print("self.min_distance: ", self.min_distance)
-        print("distance: ", distance)
+        print("-> self.min_distance: ", self.min_distance)
+        print("-> self.max_distance: ", self.max_distance)
+        print("-> distance: ", distance)
+        print("-> angle: ", angle)
 
         # Avanza si está entre dos umbrales de distancia
         if self.min_distance < distance < self.max_distance:
@@ -176,26 +176,28 @@ class PersonFollower(Node):
             # Cuando está muy cerca va muy lento, corrección:
             vx = max(vx, MIN_VEL)
 
-            # TODO: Revisar de aquí al final (Por alguna razón, se para y no gira a la derecha)
             # Aquí se calcula la diferencia entre el ángulo detectado y el centro
-            angle_error = self.is_clockwise * (self.centre - angle)
+            angle_error = (self.max_angle - angle) if (self.middle_angle >= angle) else (self.centre - angle)
+
+            angle_error *= self.is_clockwise
             print(f"angle_error: {angle_error}")
 
-            # Normalizamos el ángulo para que esté entre 0 y 359 (para pasarlo a radianes
+            # Normalizamos el ángulo para que esté entre 0 y 359 (para pasarlo a radianes)
             angle_error = angle_error * ORIGINAL_MAX_RANGE / self.max_angle
+            print("angle_error en base 360 ", angle_error)
+
+            # Si es múltiplo de 360, tiene que ser 0
+            angle_error = angle_error if (angle_error % ORIGINAL_MAX_RANGE) != 0 else 0
+            print("angle_error post-transformaciones", angle_error)
 
             # Pasamos la diferencia de ángulos a radianes
             wz = angle_error / pi
 
-            #self.prev_angle_error += angle_error
-            #self.angle_error_acumulation = 0.0 if angle_error == 0 else (self.angle_error_acumulation + angle_error)
-
             # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente )
             vx *= VEL_SMOOTH_FACTOR
-            #wz = (wz * ANGLE_SMOOTH_FACTOR + self.prev_angle_error * DERIVATE_SMOOTH_FACTOR + self.angle_error_acumulation * INTEGRAL_SMOOTH_FACTOR)
             wz = wz * ANGLE_SMOOTH_FACTOR
 
-            self.velocidad_anterior = vx
+            self.velocidad_anterior = max(vx, MIN_VEL)
             print(f"vx: {vx} |  wz: {wz}")
             print("--------")
 
