@@ -23,18 +23,18 @@ from math import pi
 # -- CONSTANTES -- #
 
 # En el caso de 360
-ANGLE_IF_ORIGINAL_MAX_RANGE = 30
+ANGLE_IF_ORIGINAL_MAX_RANGE = 20
 ORIGINAL_MAX_RANGE = 360
 
-MIN_DISTANCE = 0.50
-MAX_DISTANCE = 2.50
+MIN_DISTANCE = 0.45
+MAX_DISTANCE = 2.00
 MAX_VEL = 6.67
 MIN_VEL = 0.20
 
 VEL_SMOOTH_FACTOR = 0.50 # 0.5
 ANGLE_SMOOTH_FACTOR = 0.10 # 0.15
 
-MIN_AJUSTE_ANGULO = 0.2
+MIN_AJUSTE_ANGULO = 0.4
 
 # Esto molesta y supongo que si se ajustan los valores aportaría poco.
 # DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
@@ -75,8 +75,8 @@ class PersonFollower(Node):
     is_clockwise = 1
 
     # Atributos para corregir el error en la distancia en caso de que el robot detecte más o menos
-    error_min_distance = -0.15
-    error_max_distance = -0.15
+    error_min_distance = 0.0
+    error_max_distance = 0.0
     
     min_distance = MIN_DISTANCE + error_min_distance
     max_distance = MAX_DISTANCE + error_max_distance
@@ -169,7 +169,7 @@ class PersonFollower(Node):
         print("-> distance: ", distance)
         print("-> angle: ", angle)
 
-        # Avanza si está entre dos umbrales de distancia
+        # Se mueve si está entre dos umbrales de distancia
         if self.min_distance < distance < self.max_distance:
             # Idea: a más distancia, más velocidad (pero con límites)
             vx = min(distance - self.min_distance, MAX_VEL)
@@ -179,6 +179,7 @@ class PersonFollower(Node):
             # Aquí se calcula la diferencia entre el ángulo detectado y el centro
             angle_error = (self.max_angle - angle) if (angle >= self.middle_angle) else (self.centre - angle)
 
+            # Cambia el signo dependiendo del sentido de las detecciones del LIDAR
             angle_error *= self.is_clockwise
             print(f"angle_error: {angle_error}")
 
@@ -195,7 +196,7 @@ class PersonFollower(Node):
 
             # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente )
             vx *= VEL_SMOOTH_FACTOR
-            wz = wz * ANGLE_SMOOTH_FACTOR
+            wz *= ANGLE_SMOOTH_FACTOR
 
             self.velocidad_anterior = max(vx, MIN_VEL)
             print(f"vx: {vx} |  wz: {wz}")
@@ -205,8 +206,7 @@ class PersonFollower(Node):
             # Si no detecta a nadie, se queda quieto
             vx = 0.0
             wz = 0.0
-            #self.prev_angle_error = 0.0
-            #self.angle_error_acumulation = 0.0
+            # Es "MIN_VEL" en vez de 0 para los cálculos de la función de normalización
             self.velocidad_anterior = MIN_VEL
 
         # Se mandan las velocidades.
