@@ -22,7 +22,7 @@ from math import pi
 
 # -- CONSTANTES -- #
 
-# En el caso de 360
+# En el caso de 360º serían los siguientes ángulos:
 ANGLE_IF_ORIGINAL_MAX_RANGE = 20
 ORIGINAL_MAX_RANGE = 360
 
@@ -31,14 +31,10 @@ MAX_DISTANCE = 2.00
 MAX_VEL = 6.67
 MIN_VEL = 0.20
 
-VEL_SMOOTH_FACTOR = 0.50 # 0.5
-ANGLE_SMOOTH_FACTOR = 0.10 # 0.15
+VEL_SMOOTH_FACTOR = 0.50
+ANGLE_SMOOTH_FACTOR = 0.10
 
 MIN_AJUSTE_ANGULO = 0.4
-
-# Esto molesta y supongo que si se ajustan los valores aportaría poco.
-# DERIVATE_SMOOTH_FACTOR = 0.00010 # 0.010
-# INTEGRAL_SMOOTH_FACTOR = 0.0000010 # 0.00010
 
 # -- FIN CONSTANTES -- #
 
@@ -62,8 +58,11 @@ class PersonFollower(Node):
 
     # Atributos "base"
     centre = 0
+    middle_angle = ORIGINAL_MAX_RANGE // 2
     max_angle = ORIGINAL_MAX_RANGE
     velocidad_anterior = MIN_VEL
+    min_front = centre - ANGLE_IF_ORIGINAL_MAX_RANGE
+    max_front = centre + ANGLE_IF_ORIGINAL_MAX_RANGE
     # -------- #
 
     # -------- #
@@ -71,10 +70,10 @@ class PersonFollower(Node):
 
     # Constante para corregir el error de la detección del ángulo laser.
     lidar_angle_error = -542
-    # Sentido horario (1 sí, -1 no)
+    # Sentido horario de la detección (1 sí, -1 no)
     is_clockwise = 1
 
-    # Atributos para corregir el error en la distancia en caso de que el robot detecte más o menos
+    # Atributos para corregir el error en la distancia en caso de que el sensor detecte más o menos
     error_min_distance = 0.0
     error_max_distance = 0.0
     
@@ -87,7 +86,7 @@ class PersonFollower(Node):
     def lista_distancias_ordenada(self, ranges):
 
         # El list-enumerate es para tener una lista cuyos valores sea tal que: (índice , distancia)
-        #   (Nota: índice = ángulo desde el que se ha detectado la distancia)
+        #   (Nota: índice === ángulo desde el que se ha detectado la distancia)
         ranges = list(enumerate(ranges))
 
         # Caso en el que hay un cambio de signo en medio.
