@@ -77,12 +77,9 @@ def redondear_bien_a_la_unidad(entrada):
 class PersonFollower(Node):
 
     # --- Atributos "base" --- #
-     # Se asume que el centro está a la mitad del conjunto de mediciones
+    # Centro de la parte frontal del robot.
     centre = 0
- # Si el centro no es la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 160),
-    #    todos los ángulos de giro podrían ser de un solo signo (el sistmea necesita 2: positivo
-    #    para girar en un sentido, negativo para girar en el sentido opuesto). Esta variable está
-    #    para simplificarnos el código más adelante.
+    # Esta variable está para simplificarnos el código relacionado con el giro en casos especiales.
     middle_angle = ORIGINAL_MAX_RANGE // 2
     # Valor mínimo del rango en el que se detecta respecto del centro
     max_angle = ORIGINAL_MAX_RANGE
@@ -94,7 +91,6 @@ class PersonFollower(Node):
     min_front = centre - ANGLE_IF_ORIGINAL_MAX_RANGE
     max_front = centre + ANGLE_IF_ORIGINAL_MAX_RANGE
     # -------- #
-
 
     # -------- #
     # Atributos para corregir el "error" que se produce al pasar de la simulación al robot real
@@ -154,10 +150,7 @@ class PersonFollower(Node):
         # -- Asignamos las variables:
         # Se asume que el centro está a la mitad del conjunto de mediciones
         self.centre = num_mediciones // 2
-        # Si el centro no es la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 160),
-        #    todos los ángulos de giro podrían ser de un solo signo (el sistmea necesita 2: positivo
-        #    para girar en un sentido, negativo para girar en el sentido opuesto). Esta variable está
-        #    para simplificarnos el código más adelante.
+        # Esta variable está para simplificarnos el cálculo del giro más adelante.
         self.middle_angle = num_mediciones        
         # Valor mínimo del rango en el que se detecta respecto del centro
         self.min_front = self.centre - angle
@@ -196,7 +189,7 @@ class PersonFollower(Node):
         # Obtenemos una lista ordenada de menor distancia a mayor de los ángulos y las distancias que queremos detectar
         range_values = self.lista_distancias_ordenada(ranges)
 
-        # Para que no de error ni se bloquee si no detecta valores en el rango a "observar"
+        # Para que no dé error ni se bloquee si no detecta valores en el rango a "observar"
         if len(range_values) == 0:
             return None
 
@@ -214,7 +207,10 @@ class PersonFollower(Node):
             # Pero cuando está muy cerca va muy lento; nuestra corrección:
             vx = max(vx, MIN_VEL)
 
-            # Aquí se calcula la diferencia entre el ángulo detectado y el centro
+            # Aquí se calcula la diferencia entre el ángulo detectado y el centro, pero, si el centro no 
+            #    es la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 160º), todos los 
+            #    ángulos de giro podrían ser de un solo signo (el sistmea necesita 2: positivo para girar 
+            #    en un sentido y negativo para girar en el sentido opuesto). 
             angle_error = (self.max_angle - angle) if (angle >= self.middle_angle) else (self.centre - angle)
 
             # Cambia el signo dependiendo del sentido de las detecciones del LIDAR
