@@ -220,7 +220,7 @@ class PersonFollower(Node):
             angle_error *= self.is_clockwise
             print(f"angle_error: {angle_error}")
 
-            # Normalizamos el ángulo para que esté entre 0 y 360 (es decir, "ORIGINAL_MAX_RANGE") para así 
+            # Se adapta el ángulo para que esté entre 0 y 360 (es decir, "ORIGINAL_MAX_RANGE") para así 
             #     poder pasarlo a radianes (es necesario para la velocidad angular).
             angle_error = angle_error * ORIGINAL_MAX_RANGE / self.max_angle
             print("angle_error en base 360 ", angle_error)
