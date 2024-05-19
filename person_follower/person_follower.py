@@ -47,8 +47,10 @@ MIN_VEL = 0.20
 VEL_SMOOTH_FACTOR = 0.50
 ANGLE_SMOOTH_FACTOR = 0.10
 
-# Constante para indicar el tanto por 1 del ángulo que detectará si va a la velocidad máxima, es decir, 
-#     si 0.4 = 4 0%; si es el ángulo es de 20º, se tendrá en cuenta solo el rango de 8º (40 % de 20º) desde el centro.
+# Constante para indicar el tanto por 1 del ángulo que detectará si va a la velocidad máxima, 
+#    es decir, si vale 0.4 indicaría que, si está a la velocidad máxima, el rango de detección 
+#    será solo de un 40 % del valor base. Por ejemplo, si es el ángulo es de 20º, se tendrá 
+#    en cuenta solo el rango de 8º (que es el 40 % de 20º) desde el centro.
 MIN_AJUSTE_ANGULO = 0.4
 
 # -- FIN CONSTANTES -- #
@@ -59,9 +61,10 @@ MIN_AJUSTE_ANGULO = 0.4
 def normalizar_a_la_inversa(valor, min_v=MIN_VEL, max_v=MAX_VEL, valor_minimo=MIN_AJUSTE_ANGULO):
     return 1 - (1 - valor_minimo) * (valor - min_v) / (max_v - min_v)
 
-# Función para redondear bien la unidad porque, por alguna razón que no entendemos, en la versión de python instalada,
-#    la función "round" redondea 0.5 como 0 en vez de como 1, en contra de la definición del redondeo (pero con 
-#    el resto de decimales va bien, por ejemplo "round(0.05, 1)" sí que lo redonda a 0.1).
+# Función para redondear bien la unidad porque, debido a un fallo en la versión de python instalada (y 
+#    parece que del tratamiento de los flotantes de Python3 en general), la función "round" redondea 0.5 
+#    como 0 en vez de como 1, en contra de la definición del redondeo (pero con el resto de decimales 
+#    va bien, por ejemplo "round(0.05, 1)" sí que lo redonda a 0.1).
 def redondear_bien_a_la_unidad(entrada):
     entrada_sin_decimales = int(entrada)
     valor = entrada - entrada_sin_decimales
@@ -73,14 +76,25 @@ def redondear_bien_a_la_unidad(entrada):
 
 class PersonFollower(Node):
 
-    # Atributos "base"
+    # --- Atributos "base" --- #
+     # Se asume que el centro está a la mitad del conjunto de mediciones
     centre = 0
+ # Si el centro no es la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 160),
+    #    todos los ángulos de giro podrían ser de un solo signo (el sistmea necesita 2: positivo
+    #    para girar en un sentido, negativo para girar en el sentido opuesto). Esta variable está
+    #    para simplificarnos el código más adelante.
     middle_angle = ORIGINAL_MAX_RANGE // 2
+    # Valor mínimo del rango en el que se detecta respecto del centro
     max_angle = ORIGINAL_MAX_RANGE
+    # Valor máximo del rango en el que se detecta respecto del centro   
     velocidad_anterior = MIN_VEL
+    # El número de mediciones que recibe
+    max_angle = ORIGINAL_MAX_RANGE
+    # El rango de mediciones a tener en cuenta
     min_front = centre - ANGLE_IF_ORIGINAL_MAX_RANGE
     max_front = centre + ANGLE_IF_ORIGINAL_MAX_RANGE
     # -------- #
+
 
     # -------- #
     # Atributos para corregir el "error" que se produce al pasar de la simulación al robot real
@@ -140,13 +154,16 @@ class PersonFollower(Node):
         # -- Asignamos las variables:
         # Se asume que el centro está a la mitad del conjunto de mediciones
         self.centre = num_mediciones // 2
-        # 
+        # Si el centro no es la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 160),
+        #    todos los ángulos de giro podrían ser de un solo signo (el sistmea necesita 2: positivo
+        #    para girar en un sentido, negativo para girar en el sentido opuesto). Esta variable está
+        #    para simplificarnos el código más adelante.
         self.middle_angle = num_mediciones        
         # Valor mínimo del rango en el que se detecta respecto del centro
         self.min_front = self.centre - angle
         # Valor máximo del rango en el que se detecta respecto del centro                                           
         self.max_front = self.centre + angle
-        # El número de mediciones.
+        # El número de mediciones
         self.max_angle = num_mediciones
 
         # Ajustamos las variables a las correciones para el robot.
