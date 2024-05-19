@@ -59,7 +59,9 @@ MIN_AJUSTE_ANGULO = 0.4
 def normalizar_a_la_inversa(valor, min_v=MIN_VEL, max_v=MAX_VEL, valor_minimo=MIN_AJUSTE_ANGULO):
     return 1 - (1 - valor_minimo) * (valor - min_v) / (max_v - min_v)
 
-# Función para redondear bien la unidad
+# Función para redondear bien la unidad porque, por alguna razón que no entendemos, en la versión de python instalada,
+#    la función "round" redondea 0.5 como 0 en vez de como 1, en contra de la definición del redondeo (pero con 
+#    el resto de decimales va bien, por ejemplo "round(0.05, 1)" sí que lo redonda a 0.1).
 def redondear_bien_a_la_unidad(entrada):
     entrada_sin_decimales = int(entrada)
     valor = entrada - entrada_sin_decimales
