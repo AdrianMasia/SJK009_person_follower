@@ -208,9 +208,12 @@ class PersonFollower(Node):
             vx = max(vx, MIN_VEL)
 
             # Aquí se calcula la diferencia entre el ángulo detectado y el centro, pero, si el centro no 
-            #    es la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 160º), todos los 
-            #    ángulos de giro podrían ser de un solo signo (el sistmea necesita 2: positivo para girar 
-            #    en un sentido y negativo para girar en el sentido opuesto). 
+            #    está a la mitad de las mediciones (por ejemplo, porque es 0º, en vez de 180º), todos los 
+            #    ángulos de giro podrían ser de un solo signo y el sistmea necesita que sean de 2 signos: 
+            #    positivo para girar en un sentido y negativo para girar en el sentido opuesto. 
+            #
+            #    Nota: Si tuviesemos de que el rango de detección nunca va a traspasar los de extremos (0 y 
+            #    self.max_angle), sería solo "angle_error = (self.centre - angle)"
             angle_error = (self.max_angle - angle) if (angle >= self.middle_angle) else (self.centre - angle)
 
             # Cambia el signo dependiendo del sentido de las detecciones del LIDAR
