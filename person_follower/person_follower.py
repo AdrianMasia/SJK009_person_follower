@@ -22,18 +22,33 @@ from math import pi
 
 # -- CONSTANTES -- #
 
-# En el caso de 360º serían los siguientes ángulos:
-ANGLE_IF_ORIGINAL_MAX_RANGE = 20
+# Constante para inidcar la "base" en la que se va a trabajar 
+#    (indiferentemente del número de muestras que haga el LIDAR)
 ORIGINAL_MAX_RANGE = 360
 
+# Constante para indicar el rango de muestras que se tienen en cuenta a uno de los lados 
+#    del centro (la posición en la que debería estar la persona), es decir, si la constante 
+#    vale 20 y el "centro" es 180, tendrá en cuenta desde 160 (centro - 20) hasta 200 (centro + 20).
+ANGLE_IF_ORIGINAL_MAX_RANGE = 20
+
+# Constante para indicar la distancia mínima a la que puede estar el robot (en metros)
 MIN_DISTANCE = 0.45
+# Constante para indicar la distancia máxima de detección 
 MAX_DISTANCE = 2.00
+# Constante para indicar la velocidad máxima (en m/s) a la que puede ir (teóricamente 
+#    y sin tener en cuenta los factores de "suavizado")
 MAX_VEL = 6.67
+# Constante para indicar la velocidad mínima (en m/s) a la que debe ir 
+#    (sin tener en cuenta los factores de "suavizado")
 MIN_VEL = 0.20
 
+# Constantes para suavizar la velocidad de movimiento tanto lineal como angular 
+#    (1ª y 2ª constante respectivamente)
 VEL_SMOOTH_FACTOR = 0.50
 ANGLE_SMOOTH_FACTOR = 0.10
 
+# Constante para indicar el tanto por 1 del ángulo que detectará si va a la velocidad máxima, es decir, 
+#     si 0.4 = 4 0%; si es el ángulo es de 20º, se tendrá en cuenta solo el rango de 8º (40 % de 20º) desde el centro.
 MIN_AJUSTE_ANGULO = 0.4
 
 # -- FIN CONSTANTES -- #
@@ -101,7 +116,7 @@ class PersonFollower(Node):
             # valores desde el centro hasta el máximo de la derecha (el +1 es para pillar también el último valor)
             valores_der = ranges[self.centre : self.max_front + 1]
 
-        # Aquí los valores aún están desordenados
+        # Nota: Aquí los valores aún están desordenados aunque la variable indique lo contrario.
         distancias_ordenadas = valores_izq + valores_der
 
         # Ordenamos el conjunto por la distancia (x es la tupla: x[0] índice, x[1] distancia)
@@ -120,14 +135,19 @@ class PersonFollower(Node):
         #   la distancia máxima y el ángulo de detección varia en función de la velocidad anterior
         angle = redondear_bien_a_la_unidad((angle * normalizar_a_la_inversa(vel_anterior)))
 
-        # Asignamos las variables
-        self.centre = num_mediciones // 2   # Se asume que el centro está a la mitad del conjunto de mediciones
-        self.middle_angle = num_mediciones
+        # -- Asignamos las variables:
+        # Se asume que el centro está a la mitad del conjunto de mediciones
+        self.centre = num_mediciones // 2
+        # 
+        self.middle_angle = num_mediciones        
+        # Valor mínimo del rango en el que se detecta respecto del centro
         self.min_front = self.centre - angle
+        # Valor máximo del rango en el que se detecta respecto del centro                                           
         self.max_front = self.centre + angle
+        # El número de mediciones.
         self.max_angle = num_mediciones
 
-        # Ajustamos el centro a los errores
+        # Ajustamos las variables a las correciones para el robot.
         self.centre += correccion_angulo_robot
         self.middle_angle += correccion_angulo_robot
         self.min_front += correccion_angulo_robot
@@ -157,11 +177,11 @@ class PersonFollower(Node):
         # Obtenemos una lista ordenada de menor distancia a mayor de los ángulos y las distancias que queremos detectar
         range_values = self.lista_distancias_ordenada(ranges)
 
-        # Para que no de error si no detecta valores
+        # Para que no de error ni se bloquee si no detecta valores en el rango a "observar"
         if len(range_values) == 0:
             return None
 
-        #  "angle" nos sirve para saber el ángulo donde se encuentra la persona (p.ej.: a 20º)
+        #  "angle" nos sirve para saber el ángulo donde se encuentra la persona (p.ej.: si es 20, a 20º)
         angle, distance = range_values[0]
         print("-> self.min_distance: ", self.min_distance)
         print("-> self.max_distance: ", self.max_distance)
@@ -170,9 +190,9 @@ class PersonFollower(Node):
 
         # Se mueve si está entre dos umbrales de distancia
         if self.min_distance < distance < self.max_distance:
-            # Idea: a más distancia, más velocidad (pero con límites)
+            # A más distancia, más velocidad (pero con límites)
             vx = min(distance - self.min_distance, MAX_VEL)
-            # Cuando está muy cerca va muy lento, corrección:
+            # Pero cuando está muy cerca va muy lento; nuestra corrección:
             vx = max(vx, MIN_VEL)
 
             # Aquí se calcula la diferencia entre el ángulo detectado y el centro
@@ -182,21 +202,24 @@ class PersonFollower(Node):
             angle_error *= self.is_clockwise
             print(f"angle_error: {angle_error}")
 
-            # Normalizamos el ángulo para que esté entre 0 y 359 (para pasarlo a radianes)
+            # Normalizamos el ángulo para que esté entre 0 y 360 (es decir, "ORIGINAL_MAX_RANGE") para así 
+            #     poder pasarlo a radianes (es necesario para la velocidad angular).
             angle_error = angle_error * ORIGINAL_MAX_RANGE / self.max_angle
             print("angle_error en base 360 ", angle_error)
 
-            # Si es múltiplo de 360, tiene que ser 0
+            # Si es múltiplo de 360 (es decir, ORIGINAL_MAX_RANGE), tiene que ser 0
             angle_error = angle_error if (angle_error % ORIGINAL_MAX_RANGE) != 0 else 0
             print("angle_error post-transformaciones", angle_error)
 
             # Pasamos la diferencia de ángulos a radianes
             wz = angle_error / pi
 
-            # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente )
+            # Aplicamos las constantes para suavizar las velocidades líneales y angulares (respectivamente)
             vx *= VEL_SMOOTH_FACTOR
             wz *= ANGLE_SMOOTH_FACTOR
 
+            # La velocidad anterior tiene que ser, como mínimo, el mínimo de la velocidad para simplificar los
+            #    cálculos de la función de normalización
             self.velocidad_anterior = max(vx, MIN_VEL)
             print(f"vx: {vx} |  wz: {wz}")
             print("--------")
@@ -205,10 +228,10 @@ class PersonFollower(Node):
             # Si no detecta a nadie, se queda quieto
             vx = 0.0
             wz = 0.0
-            # Es "MIN_VEL" en vez de 0 para los cálculos de la función de normalización
+            # El siguietne valor es "MIN_VEL" en vez de 0 para los cálculos de la función de normalización
             self.velocidad_anterior = MIN_VEL
 
-        # Se mandan las velocidades.
+        # Se mandan las velocidades al robot
         output_msg = Twist()
         output_msg.linear.x = vx
         output_msg.angular.z = wz
